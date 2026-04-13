@@ -1,0 +1,29 @@
+// {
+//   "compilerOptions": {
+//     /* Environment */
+//     "target": "ESNext",
+//     "module": "ESNext",
+//     "moduleResolution": "Node",
+//     "jsx": "react-jsx",
+
+//     /* Paths (IMPORTANT for @/ imports) */
+//     "baseUrl": ".",
+//     "paths": {
+//       "@/*": ["src/*"]
+//     },
+
+//     /* Type Checking */
+//     "strict": false,
+//     "skipLibCheck": true,
+
+//     /* Compatibility */
+//     "esModuleInterop": true,
+//     "allowSyntheticDefaultImports": true,
+
+//     /* Vite Recommended */
+//     "isolatedModules": true,
+//     "noEmit": true
+//   },
+
+//   "include": ["src"]
+// }

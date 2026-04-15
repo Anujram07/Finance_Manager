@@ -34,9 +34,9 @@ const Home = () => {
 
           <div className="hidden md:flex items-center gap-8 font-medium text-slate-600">
             <a href="#features" className="hover:text-emerald-600">Features</a>
-            <a href="#how-it-works" className="hover:text-emerald-600">How it Works</a>
+            <a href="#how" className="hover:text-emerald-600">How it Works</a>
 
-            <Link to="/login">
+            <Link to="/loan">
               <button className="bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-emerald-600 transition">
                 Check Eligibility
               </button>
@@ -116,78 +116,39 @@ const Home = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-
             <FeatureCard icon={<Landmark />} title="Loan Predictor" desc="AI predicts loan approval." />
             <FeatureCard icon={<TrendingUp />} title="Credit Insights" desc="Improve your credit score." />
             <FeatureCard icon={<Wallet />} title="Expense Tracker" desc="Track spending easily." />
             <FeatureCard icon={<ShieldCheck />} title="Fraud Detection" desc="Stay safe from scams." />
             <FeatureCard icon={<PieChart />} title="Budget Planner" desc="Manage your finances." />
             <FeatureCard icon={<CheckCircle />} title="Loan Simulator" desc="Test loan scenarios." />
-
           </div>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" class="bg-slate-50 py-16 px-6 md:py-24">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-      <span class="inline-block px-4 py-1.5 mb-4 text-sm font-semibold tracking-wider text-blue-600 uppercase bg-blue-100 rounded-full">
-        How It Works
-      </span>
-      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-        From Raw Data to Smart Decisions in Minutes
-      </h2>
-      <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-        Four simple steps that transform your financial data into clear, actionable intelligence.
-      </p>
-    </div>
+      <section id="how" className="bg-slate-50 py-16 px-6 md:py-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 mb-4 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+              How It Works
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              From Raw Data to Smart Decisions in Minutes
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Four simple steps that transform your financial data into clear insights.
+            </p>
+          </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      
-      <div class="relative p-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-center w-12 h-12 mb-6 text-xl font-bold text-white bg-blue-600 rounded-lg">
-          1
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <StepCard step="1" title="Enter Profile" desc="Add income & expenses." />
+            <StepCard step="2" title="AI Analysis" desc="System evaluates your data." />
+            <StepCard step="3" title="Get Insights" desc="See loan eligibility instantly." />
+            <StepCard step="4" title="Improve" desc="Follow smart recommendations." />
+          </div>
         </div>
-        <h3 class="text-xl font-semibold text-slate-900 mb-3">Enter Your Profile</h3>
-        <p class="text-slate-600 leading-relaxed">
-          Input income, expenses, debts, and savings in under 3 minutes. No bank connection required.
-        </p>
-      </div>
-
-      <div class="relative p-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-center w-12 h-12 mb-6 text-xl font-bold text-white bg-blue-600 rounded-lg">
-          2
-        </div>
-        <h3 class="text-xl font-semibold text-slate-900 mb-3">AI Analyzes Everything</h3>
-        <p class="text-slate-600 leading-relaxed">
-          Our model correlates all financial data to compute health scores, risk levels, and eligibility metrics.
-        </p>
-      </div>
-
-      <div class="relative p-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-center w-12 h-12 mb-6 text-xl font-bold text-white bg-blue-600 rounded-lg">
-          3
-        </div>
-        <h3 class="text-xl font-semibold text-slate-900 mb-3">Get Instant Insights</h3>
-        <p class="text-slate-600 leading-relaxed">
-          View your full dashboard — loan probability, budget recommendations, and personalized saving tips.
-        </p>
-      </div>
-
-      <div class="relative p-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-center w-12 h-12 mb-6 text-xl font-bold text-white bg-blue-600 rounded-lg">
-          4
-        </div>
-        <h3 class="text-xl font-semibold text-slate-900 mb-3">Act & Improve</h3>
-        <p class="text-slate-600 leading-relaxed">
-          Follow AI recommendations, simulate loan scenarios, and track improvement with exportable reports.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* FOOTER */}
       <footer className="text-center py-10 border-t">
@@ -209,8 +170,8 @@ const FeatureCard = ({ icon, title, desc }) => (
 
 /* STEP CARD */
 const StepCard = ({ step, title, desc }) => (
-  <div className="p-8 rounded-3xl bg-slate-50 border hover:shadow-lg transition">
-    <div className="text-emerald-600 text-3xl font-bold mb-4">{step}</div>
+  <div className="p-8 rounded-3xl bg-white shadow hover:shadow-xl transition">
+    <div className="text-blue-600 text-3xl font-bold mb-4">{step}</div>
     <h3 className="font-bold mb-2">{title}</h3>
     <p className="text-slate-500">{desc}</p>
   </div>

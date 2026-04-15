@@ -289,6 +289,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./Home/Home";
 import Login from "./Pages/Login";
 import Dashboard from "./Pages/Dashboard";
+import HowItWorks from "./Pages/How_it_works";
 
 function App() {
   return (
@@ -297,6 +298,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
       </Routes>
     </Router>
   );

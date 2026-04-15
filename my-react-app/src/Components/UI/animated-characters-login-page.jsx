@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,28 +212,86 @@ function LoginPage() {
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" placeholder="you@example.com" onFocus={() => setIsTyping(true)} onBlur={() => setIsTyping(false)} />
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                onFocus={() => setIsTyping(true)}
+                onBlur={() => setIsTyping(false)}
+              />
             </div>
+
             <div className="space-y-2">
               <Label>Password</Label>
               <div className="relative">
-                <Input type={showPassword ? "text" : "password"} placeholder="••••••••" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-muted-foreground">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-muted-foreground"
+                >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember">Remember me</Label>
-              </div>
-              <a href="#" className="text-sm font-medium text-primary hover:underline">Forgot password?</a>
-            </div>
-            <Button className="w-full h-12 text-lg">Sign In</Button>
+
+            <div className="flex items-center justify-between mt-2">
+  
+  {/* Remember Me */}
+  <div className="flex items-center gap-2">
+    <Checkbox id="remember" className="cursor-pointer" />
+    <Label
+      htmlFor="remember"
+      className="text-sm text-gray-600 cursor-pointer hover:text-black transition"
+    >
+      Remember me
+    </Label>
+  </div>
+
+  {/* Forgot Password */}
+  <button
+    type="button"
+    className="text-sm font-semibold text-indigo-500 
+    hover:text-indigo-600 hover:underline transition"
+  >
+    Forgot password?
+  </button>
+
+</div>
           </form>
-          <Button variant="outline" className="w-full h-12">
-            <Mail className="mr-2" /> Continue with Google
+          <Button
+            asChild
+            className="w-full h-12 text-lg font-semibold rounded-xl 
+  bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+  text-white shadow-lg transition-all duration-300 
+  hover:scale-105 hover:shadow-xl hover:from-indigo-600 hover:to-pink-600 
+  active:scale-95"
+          >
+            <Link
+              to="/dashboard"
+              onClick={() => alert("Signup successful")}
+              className="flex items-center justify-center gap-2"
+            >
+              🚀 Sign Up
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 flex items-center justify-center gap-3 
+  rounded-xl border border-gray-300 bg-white 
+  shadow-sm transition-all duration-300 
+  hover:shadow-md hover:bg-gray-50 hover:scale-[1.02] active:scale-95"
+          >
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="w-5 h-5"
+            />
+            <span className="font-medium text-gray-700">
+              Continue with Google
+            </span>
           </Button>
         </div>
       </div>

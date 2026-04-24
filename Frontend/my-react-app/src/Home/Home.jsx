@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from "react-router-dom";
 import {
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 import {
   ShieldCheck, Wallet, PieChart, TrendingUp, Landmark,
-  CheckCircle, ChevronRight, Menu, X
+  CheckCircle, ChevronRight
 } from 'lucide-react';
 
 const Home = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const data = [
     { name: 'Jan', savings: 4000 },
@@ -22,41 +21,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-
-      {/* NAVBAR */}
-      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-bold">FV</div>
-            <span className="text-xl font-bold">FinanceView AI</span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8 font-medium text-slate-600">
-            <a href="#features" className="hover:text-emerald-600">Features</a>
-            <a href="#how" className="hover:text-emerald-600">How it Works</a>
-
-            <Link to="/loan">
-              <button className="bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-emerald-600 transition">
-                Check Eligibility
-              </button>
-            </Link>
-          </div>
-
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t px-6 py-4 flex flex-col gap-4">
-            <Link to="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
-            <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-          </div>
-        )}
-      </nav>
 
       {/* HERO */}
       <section className="pt-32 pb-20 px-6">

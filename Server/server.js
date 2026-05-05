@@ -9,8 +9,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/api/auth", require("./Routes/authRoutes"));
-app.use("/api/user", require("./Routes/userRoutes"));
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/user", require("./routes/userRoutes"));
 
 // DB connection
 mongoose.connect(process.env.MONGO_URI)

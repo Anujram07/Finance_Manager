@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,10 +57,78 @@ const EyeBall = ({ size = 20, pupilSize = 8, maxDistance = 6, forceLookX, forceL
   );
 };
 
-function LoginPage() {
+function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
+  const [mode, setMode] = useState(initialMode);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focusField, setFocusField] = useState(null); // 'email' or 'password'
   const [isHoveringLogin, setIsHoveringLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
+
+  const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+
+  const resetMessages = () => {
+    setError("");
+    setSuccess("");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    resetMessages();
+
+    if (!email || !password || (mode === "signup" && !name)) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const endpoint = mode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+      const body = mode === "signup" ? { name, email, password } : { email, password };
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(typeof data === "string" ? data : data.message || "Authentication failed.");
+        return;
+      }
+
+      if (mode === "signup") {
+        setSuccess("Registration successful. Please sign in.");
+        setMode("login");
+        setPassword("");
+        return;
+      }
+
+      const { token, user } = data;
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("authUser", JSON.stringify(user));
+      setIsLoggedIn(true);
+      setUserName(user?.name || user?.email || "User");
+      navigate("/dashboard");
+    } catch (fetchError) {
+      setError(fetchError.message || "Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    resetMessages();
+    setMode(mode === "login" ? "signup" : "login");
+  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 overflow-hidden bg-background">
@@ -133,17 +201,39 @@ function LoginPage() {
 
       {/* Form Section - Clean & Original */}
       <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-[420px] space-y-8">
+        <div className="w-full max-w-[420px] space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold">Welcome back!</h1>
-            <p className="text-muted-foreground mt-2">Enter your details to sign in</p>
+            <h1 className="text-3xl font-bold">{mode === "login" ? "Welcome back!" : "Create a new account"}</h1>
+            <p className="text-muted-foreground mt-2">
+              {mode === "login"
+                ? "Enter your details to sign in"
+                : "Fill in your details to create an account"}
+            </p>
           </div>
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {success && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {mode === "signup" && (
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  type="text"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onFocus={() => setFocusField('name')}
+                  onBlur={() => setFocusField(null)}
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
                 type="email"
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusField('email')}
                 onBlur={() => setFocusField(null)}
               />
@@ -155,6 +245,8 @@ function LoginPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFocusField('password')}
                   onBlur={() => setFocusField(null)}
                 />
@@ -179,23 +271,32 @@ function LoginPage() {
                 Forgot password?
               </button>
             </div>
-          </form>
 
-          <Button
-            asChild
-            onMouseEnter={() => setIsHoveringLogin(true)}
-            onMouseLeave={() => setIsHoveringLogin(false)}
-            className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-          >
-            <Link to="/dashboard" onClick={() => alert("Success!")} className="flex items-center justify-center gap-2">
-              🚀 Sign In
-            </Link>
-          </Button>
+            <Button
+              type="submit"
+              onMouseEnter={() => setIsHoveringLogin(true)}
+              onMouseLeave={() => setIsHoveringLogin(false)}
+              className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+            >
+              {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Sign Up"}
+            </Button>
+          </form>
 
           <Button variant="outline" className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border-gray-300 hover:bg-gray-50 transition-all">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
             <span className="font-medium text-gray-700">Continue with Google</span>
           </Button>
+
+          <div className="text-center text-sm text-slate-600">
+            {mode === "login" ? "Don’t have an account?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="font-semibold text-indigo-500 hover:underline"
+            >
+              {mode === "login" ? "Sign up" : "Sign in"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

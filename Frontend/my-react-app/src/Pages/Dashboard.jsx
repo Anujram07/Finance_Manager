@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from "react-router-dom";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell, LineChart, Line, Legend
@@ -54,16 +53,6 @@ const Dashboard = () => {
         <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-emerald-200/20 rounded-full blur-[100px]" />
         <div className="absolute bottom-[-5%] right-[-5%] w-[30%] h-[30%] bg-blue-200/20 rounded-full blur-[100px]" />
       </div>
-
-      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-bold">FV</div>
-            <span className="text-xl font-black">FinanceView AI</span>
-          </div>
-          <Link to="/" className="text-sm font-bold text-slate-500 hover:text-emerald-600">Back to Home</Link>
-        </div>
-      </nav>
 
       <main className="relative z-10 pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto">

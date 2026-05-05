@@ -40,7 +40,7 @@ const Home = () => {
             </p>
 
             <div className="flex gap-4">
-              <Link to="/login">
+              <Link to="/signup">
                 <button className="bg-emerald-600 text-white px-8 py-4 rounded-2xl flex items-center gap-2">
                   Get Started <ChevronRight />
                 </button>

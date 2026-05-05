@@ -5,7 +5,7 @@ import {
   Home, BarChart3, HelpCircle, DollarSign, ChevronRight
 } from 'lucide-react';
 
-const Navbar = ({ isLoggedIn = false, userName = 'John Doe' }) => {
+const Navbar = ({ isLoggedIn = false, userName = 'John Doe', logout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -149,7 +149,7 @@ const Navbar = ({ isLoggedIn = false, userName = 'John Doe' }) => {
                       <div className="border-t border-slate-100" />
 
                       {/* Logout Button */}
-                      <button className="w-full flex items-center gap-3 px-6 py-3 hover:bg-red-50 transition-colors text-red-600 font-semibold group">
+                      <button onClick={logout} className="w-full flex items-center gap-3 px-6 py-3 hover:bg-red-50 transition-colors text-red-600 font-semibold group">
                         <div className="p-2 bg-red-50 rounded-lg group-hover:bg-red-100 transition-colors">
                           <LogOut size={16} className="text-red-600" />
                         </div>
@@ -166,7 +166,7 @@ const Navbar = ({ isLoggedIn = false, userName = 'John Doe' }) => {
                       Login
                     </button>
                   </Link>
-                  <Link to="/login">
+                  <Link to="/signup">
                     <button className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 flex items-center gap-2 group">
                       Sign Up
                       <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -215,7 +215,7 @@ const Navbar = ({ isLoggedIn = false, userName = 'John Doe' }) => {
                         Login
                       </button>
                     </Link>
-                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
                       <button className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
                         Sign Up
                         <ChevronRight size={16} />

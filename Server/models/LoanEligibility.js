@@ -1,24 +1,76 @@
 const mongoose = require("mongoose");
 
 const loanEligibilitySchema = new mongoose.Schema({
-  age: { type: Number, required: true },
-  empType: { type: String, required: true },
-  workExperience: { type: Number, required: true },
-  income: { type: Number, required: true },
-  credit: { type: Number, required: true },
-  currentDebt: { type: Number, required: true },
-  loanPurpose: { type: String, required: true },
-  loanAmt: { type: Number, required: true },
-  interestRate: { type: Number, required: true },
-  tenure: { type: Number, required: true },
-  result: {
-    probability: Number,
-    eligibleAmount: Number,
-    emi: Number,
-    tips: [String],
-    calculated: Boolean
+
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
   },
-  createdAt: { type: Date, default: Date.now }
+
+  age: Number,
+
+  occupation_status: String,
+
+  years_employed: Number,
+
+  annual_income: Number,
+
+  credit_score: Number,
+
+  credit_history_years: Number,
+
+  savings_assets: Number,
+
+  current_debt: Number,
+
+  defaults_on_file: Number,
+
+  delinquencies_last_2yrs: Number,
+
+  derogatory_marks: Number,
+
+  product_type: String,
+
+  loan_intent: String,
+
+  loan_amount: Number,
+
+  interest_rate: Number,
+
+  debt_to_income_ratio: Number,
+
+  loan_to_income_ratio: Number,
+
+  payment_to_income_ratio: Number,
+
+  result: {
+
+    probability: Number,
+
+    eligibleAmount: Number,
+
+    emi: Number,
+
+    riskCategory: String,
+
+    tips: [String],
+
+    calculated: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+
 });
 
-module.exports = mongoose.model("LoanEligibility", loanEligibilitySchema);
+module.exports =
+  mongoose.model(
+    "LoanEligibility",
+    loanEligibilitySchema
+  );

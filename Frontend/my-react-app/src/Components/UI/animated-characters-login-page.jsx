@@ -64,7 +64,7 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [focusField, setFocusField] = useState(null); 
+  const [focusField, setFocusField] = useState(null);
   const [isHoveringLogin, setIsHoveringLogin] = useState(false);
   const [isHoveringGoogle, setIsHoveringGoogle] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -145,6 +145,11 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
       }
 
       const { token, user } = data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Optional backward compatibility
       localStorage.setItem("authToken", token);
       localStorage.setItem("authUser", JSON.stringify(user));
       setIsLoggedIn(true);
@@ -178,10 +183,10 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 overflow-hidden bg-slate-50 font-sans">
-      
+
       {/* Visual Left Banner */}
       <div className="relative hidden lg:flex flex-col justify-between bg-slate-900 p-12 text-white overflow-hidden border-r border-slate-800">
-        
+
         {/* Brand Header */}
         <div className="z-20 flex items-center gap-2.5">
           <div className="p-2 bg-emerald-500 rounded-xl text-slate-900 shadow-lg shadow-emerald-500/20">
@@ -203,7 +208,7 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
             {/* Deep Emerald Character */}
             <div className="absolute bottom-0 transition-all duration-500 ease-in-out shadow-2xl border border-emerald-700/30"
               style={{
-                left: '70px', width: '150px', 
+                left: '70px', width: '150px',
                 height: isPasswordFocused ? '120px' : '340px',
                 backgroundColor: '#065F46', borderRadius: '24px 24px 0 0', zIndex: 1,
               }}>
@@ -216,7 +221,7 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
             {/* Charcoal Body Character */}
             <div className="absolute bottom-0 transition-all duration-300 shadow-2xl"
               style={{
-                left: focusField === 'email' ? '220px' : '240px', 
+                left: focusField === 'email' ? '220px' : '240px',
                 width: '120px', height: '270px', backgroundColor: '#1E293B',
                 borderRadius: '20px 20px 0 0', zIndex: 2,
                 transform: focusField === 'email' ? 'rotate(-3deg)' : 'rotate(0deg)'
@@ -229,28 +234,28 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
 
             {/* Emerald Green Character */}
             <div className="absolute bottom-0 transition-all duration-500 ease-out shadow-2xl"
-              style={{ 
-                left: '0', 
-                width: '230px', 
-                height: '180px', 
-                backgroundColor: '#10B981', 
-                borderRadius: '120px 120px 0 0', 
+              style={{
+                left: '0',
+                width: '230px',
+                height: '180px',
+                backgroundColor: '#10B981',
+                borderRadius: '120px 120px 0 0',
                 zIndex: 3,
                 transform: isHoveringGoogle ? 'translateY(-20px)' : 'translateY(0)'
               }}>
               <div className="absolute flex gap-8" style={{ left: '82px', top: '80px' }}>
-                <EyeBall 
-                  size={16} 
-                  pupilSize={showPassword || isHoveringGoogle ? 12 : 8} 
-                  isVibrating={showPassword} 
-                  forceLookX={forceLookX} 
+                <EyeBall
+                  size={16}
+                  pupilSize={showPassword || isHoveringGoogle ? 12 : 8}
+                  isVibrating={showPassword}
+                  forceLookX={forceLookX}
                   forceLookY={forceLookY}
                 />
-                <EyeBall 
-                  size={16} 
-                  pupilSize={showPassword || isHoveringGoogle ? 12 : 8} 
-                  isVibrating={showPassword} 
-                  forceLookX={forceLookX} 
+                <EyeBall
+                  size={16}
+                  pupilSize={showPassword || isHoveringGoogle ? 12 : 8}
+                  isVibrating={showPassword}
+                  forceLookX={forceLookX}
                   forceLookY={forceLookY}
                 />
               </div>
@@ -263,14 +268,14 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
                 <EyeBall size={14} forceLookX={forceLookX} forceLookY={forceLookY} />
                 <EyeBall size={14} forceLookX={forceLookX} forceLookY={forceLookY} />
               </div>
-              <div 
-                className="absolute bg-slate-950 rounded-full transition-all duration-300" 
-                style={{ 
-                  left: isHoveringLogin ? '60px' : '40px', 
-                  top: '88px', 
-                  width: isHoveringLogin ? '20px' : '60px', 
-                  height: isHoveringLogin ? '20px' : '4px' 
-                }} 
+              <div
+                className="absolute bg-slate-950 rounded-full transition-all duration-300"
+                style={{
+                  left: isHoveringLogin ? '60px' : '40px',
+                  top: '88px',
+                  width: isHoveringLogin ? '20px' : '60px',
+                  height: isHoveringLogin ? '20px' : '4px'
+                }}
               />
             </div>
           </div>
@@ -296,10 +301,10 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
                   : "Start tracking budgets, incomes, and expenses securely."}
             </p>
           </div>
-          
+
           {error && <div className="rounded-xl border border-rose-200 bg-rose-50/50 px-4 py-3 text-xs font-semibold text-rose-700">{error}</div>}
           {success && <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-3 text-xs font-semibold text-emerald-700">{success}</div>}
-          
+
           <form className="space-y-4" onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div className="space-y-1.5">
@@ -434,8 +439,8 @@ function LoginPage({ setIsLoggedIn, setUserName, initialMode = "login" }) {
             <div className="flex-grow border-t border-slate-100"></div>
           </div>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onMouseEnter={() => setIsHoveringGoogle(true)}
             onMouseLeave={() => setIsHoveringGoogle(false)}
             className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all shadow-sm active:scale-[0.98]"

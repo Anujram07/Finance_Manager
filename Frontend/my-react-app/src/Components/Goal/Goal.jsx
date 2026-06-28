@@ -1,134 +1,337 @@
-import React, { useMemo, useState } from 'react';
-import { Target, Car, Home, Laptop, Briefcase, AlertCircle, CheckCircle2, HelpCircle } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import {
+  Target,
+  Trash2,
+  PlusCircle
+} from "lucide-react";
 
-const Goal = ({ financialSummary = {}, loan = {}, className = '' }) => {
-  const [goalName, setGoalName] = useState('Car');
-  const [goalCost, setGoalCost] = useState('');
+const Goal = ({ className = "" }) => {
 
-  const income = Number(financialSummary.income || 0);
-  const expenses = Number(financialSummary.expenses || 0);
-  const savings = Number(financialSummary.savings || income - expenses || 0);
+  const [goals, setGoals] = useState([]);
 
-  const evaluation = useMemo(() => {
-    const cost = Number(goalCost) || 0;
-    if (cost <= 0) return null;
+  const [form, setForm] = useState({
+    goalName: "",
+    goalType: "Emergency Fund",
+    customGoalType: "",
+    targetAmount: "",
+    savedAmount: "",
+    deadline: "",
+    image: ""
+  });
 
-    if (savings >= cost) {
-      return {
-        status: 'success',
-        title: 'Ready for Purchase (Cash upfront)',
-        text: `Excellent! Your immediate surplus savings pool (₹${savings.toLocaleString('en-IN')}) is completely capable of covering this item upfront without requiring external credit leveraging.`,
-        icon: <CheckCircle2 className="text-emerald-500 w-8 h-8" />,
-      };
+  const goalTypes = [
+    "Emergency Fund",
+    "Vehicle",
+    "House",
+    "Education",
+    "Vacation",
+    "Retirement",
+    "Business",
+    "Investment",
+    "Wedding",
+    "Custom"
+  ];
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
+  const fetchGoals = async () => {
+
+    try {
+
+      const token =
+        localStorage.getItem("authToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/goals",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGoals(data.goals);
+      }
+
+    } catch (error) {
+      console.error(error);
     }
 
-    const estimatedEMI = cost * 0.02;
-    const canAffordEMI = savings > estimatedEMI;
-    const loanCoverageFits = Number(loan.eligibleAmount || 0) >= cost;
+  };
 
-    if (loanCoverageFits && canAffordEMI && Number(loan.probability || 0) >= 70) {
-      return {
-        status: 'info',
-        title: 'Financially Viable (Via Financed Loan)',
-        text: `You can purchase this target. Your pre-approved credit ceiling (₹${Number(loan.eligibleAmount || 0).toLocaleString('en-IN')}) covers the capital requirement, and your monthly budget surplus can digest the estimated EMI of ~₹${Math.round(estimatedEMI).toLocaleString('en-IN')}/mo without breaking your ledger margins.`,
-        icon: <CheckCircle2 className="text-blue-500 w-8 h-8" />,
-      };
+  const createGoal = async () => {
+
+    try {
+
+      const token =
+        localStorage.getItem("authToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/goals",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+
+          body: JSON.stringify(form)
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+
+        setForm({
+          goalName: "",
+          goalType: "Emergency Fund",
+          customGoalType: "",
+          targetAmount: "",
+          savedAmount: "",
+          deadline: "",
+          image: ""
+        });
+
+        fetchGoals();
+      }
+
+    } catch (error) {
+      console.error(error);
     }
 
-    return {
-      status: 'warning',
-      title: 'Deferred / Purchase Not Advised',
-      text: `Your current configuration is over-leveraged for this purchase. The asset price exceeds your eligibility threshold (₹${Number(loan.eligibleAmount || 0).toLocaleString('en-IN')}), or the estimated monthly EMIs would severely wipe out your remaining buffer safety net.`,
-      icon: <AlertCircle className="text-rose-500 w-8 h-8" />,
-    };
-  }, [goalCost, income, expenses, savings, loan]);
+  };
 
-  const getGoalIcon = () => {
-    switch (goalName) {
-      case 'Car':
-        return <Car className="text-slate-600" size={20} />;
-      case 'House':
-        return <Home className="text-slate-600" size={20} />;
-      case 'Gadget':
-        return <Laptop className="text-slate-600" size={20} />;
-      default:
-        return <Briefcase className="text-slate-600" size={20} />;
+  const deleteGoal = async (id) => {
+
+    try {
+
+      const token =
+        localStorage.getItem("authToken");
+
+      await fetch(
+        `http://localhost:5000/api/goals/${id}`,
+        {
+          method: "DELETE",
+
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      fetchGoals();
+
+    } catch (error) {
+      console.error(error);
     }
+
   };
 
   return (
-    <div className={`bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-xl shadow-slate-200/40 ${className}`}>
-      <div className="flex items-center gap-3 mb-6">
+    <div
+      className={`bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-xl shadow-slate-200/40 ${className}`}
+    >
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
         <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
           <Target size={24} />
         </div>
+
         <div>
-          <h3 className="text-xl font-black tracking-tight">Predictive Financial Goal Assessor</h3>
-          <p className="text-xs text-slate-400 font-medium">Cross-references ledger savings velocity alongside credit matrix rules.</p>
+          <h3 className="text-xl font-black tracking-tight">
+            Financial Goals
+          </h3>
+
+          <p className="text-xs text-slate-400 font-medium">
+            Create and track your financial goals.
+          </p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-12 gap-8 items-center">
-        <div className="md:col-span-5 space-y-4">
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Select Target Goal</label>
-            <div className="relative flex items-center">
-              <span className="absolute left-4">{getGoalIcon()}</span>
-              <select
-                value={goalName}
-                onChange={(e) => setGoalName(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition appearance-none cursor-pointer"
-              >
-                <option value="Car">Purchase Vehicle (Car/Bike)</option>
-                <option value="House">Real Estate / House Deposit</option>
-                <option value="Gadget">Tech Infrastructure (Laptop/Phone)</option>
-                <option value="Custom">Other Contingent Assets</option>
-              </select>
-            </div>
-          </div>
+      {/* Create Goal Form */}
+      <div className="grid md:grid-cols-2 gap-4 mb-8">
 
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estimated Target Cost (₹)</label>
-            <div className="relative flex items-center">
-              <span className="absolute left-4 font-bold text-slate-400 text-sm">₹</span>
-              <input
-                type="number"
-                placeholder="e.g. 800000"
-                value={goalCost}
-                onChange={(e) => setGoalCost(e.target.value)}
-                className="w-full pl-9 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition"
-              />
-            </div>
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Goal Name"
+          value={form.goalName}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              goalName: e.target.value
+            })
+          }
+          className="p-3 rounded-xl border"
+        />
 
-        <div className="md:col-span-7 h-full flex items-center">
-          {!goalCost ? (
-            <div className="w-full p-6 border-2 border-dashed border-slate-100 rounded-[2rem] text-center text-slate-400 space-y-2 flex flex-col items-center py-10">
-              <HelpCircle size={32} className="text-slate-300 animate-bounce" />
-              <p className="text-sm font-bold text-slate-600">Awaiting Target Parameters</p>
-              <p className="text-xs max-w-xs text-slate-400">Specify an item valuation figure to invoke real-time simulation logic.</p>
-            </div>
-          ) : (
-            <div className={`w-full p-6 rounded-[2rem] border transition-all duration-300 flex items-start gap-5 ${
-              evaluation?.status === 'success' ? 'bg-emerald-50/60 border-emerald-100' :
-              evaluation?.status === 'info' ? 'bg-blue-50/60 border-blue-100' : 'bg-rose-50/60 border-rose-100'
-            }`}>
-              <div className="shrink-0 p-1">{evaluation?.icon}</div>
-              <div className="space-y-1.5">
-                <h4 className={`text-base font-black ${
-                  evaluation?.status === 'success' ? 'text-emerald-900' :
-                  evaluation?.status === 'info' ? 'text-blue-900' : 'text-rose-900'
-                }`}>{evaluation?.title}</h4>
-                <p className={`text-xs font-medium leading-relaxed ${
-                  evaluation?.status === 'success' ? 'text-emerald-700' :
-                  evaluation?.status === 'info' ? 'text-blue-700' : 'text-rose-700'
-                }`}>{evaluation?.text}</p>
+        <select
+          value={form.goalType}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              goalType: e.target.value
+            })
+          }
+          className="p-3 rounded-xl border"
+        >
+          {goalTypes.map(type => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+
+        {form.goalType === "Custom" && (
+          <input
+            type="text"
+            placeholder="Custom Goal Type"
+            value={form.customGoalType}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                customGoalType: e.target.value
+              })
+            }
+            className="p-3 rounded-xl border md:col-span-2"
+          />
+        )}
+
+        <input
+          type="number"
+          placeholder="Target Amount"
+          value={form.targetAmount}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              targetAmount: e.target.value
+            })
+          }
+          className="p-3 rounded-xl border"
+        />
+
+        <input
+          type="number"
+          placeholder="Already Saved"
+          value={form.savedAmount}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              savedAmount: e.target.value
+            })
+          }
+          className="p-3 rounded-xl border"
+        />
+
+        <input
+          type="date"
+          value={form.deadline}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              deadline: e.target.value
+            })
+          }
+          className="p-3 rounded-xl border"
+        />
+
+        <button
+          onClick={createGoal}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-3 font-bold flex items-center justify-center gap-2"
+        >
+          <PlusCircle size={18} />
+          Create Goal
+        </button>
+      </div>
+
+      {/* Goal List */}
+      <div className="space-y-4">
+
+        {goals.length === 0 && (
+          <div className="text-center py-10 text-slate-400">
+            No goals created yet.
+          </div>
+        )}
+
+        {goals.map(goal => {
+
+          const progress =
+            goal.targetAmount > 0
+              ? Math.min(
+                (goal.savedAmount / goal.targetAmount) * 100,
+                100
+              )
+              : 0;
+
+          return (
+            <div
+              key={goal._id}
+              className="border rounded-2xl p-5 bg-slate-50"
+            >
+              <div className="flex justify-between items-start">
+
+                <div>
+                  <h4 className="font-bold text-lg">
+                    {goal.goalName}
+                  </h4>
+
+                  <p className="text-sm text-slate-500">
+                    {goal.goalType}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => deleteGoal(goal._id)}
+                  className="text-rose-500 hover:text-rose-700"
+                >
+                  <Trash2 size={18} />
+                </button>
+
+              </div>
+
+              <div className="mt-4">
+
+                <div className="flex justify-between text-sm mb-1">
+                  <span>
+                    ₹{goal.savedAmount?.toLocaleString("en-IN")}
+                  </span>
+
+                  <span>
+                    ₹{goal.targetAmount?.toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                <div className="w-full bg-slate-200 rounded-full h-3">
+                  <div
+                    className="bg-emerald-500 h-3 rounded-full"
+                    style={{
+                      width: `${progress}%`
+                    }}
+                  />
+                </div>
+
+                <p className="text-xs text-slate-500 mt-2">
+                  {progress.toFixed(1)}% Completed
+                </p>
+
+                <p className="text-xs text-slate-500 mt-1">
+                  Deadline: {goal.deadline?.slice(0, 10)}
+                </p>
+
               </div>
             </div>
-          )}
-        </div>
+          );
+        })}
+
       </div>
+
     </div>
   );
 };

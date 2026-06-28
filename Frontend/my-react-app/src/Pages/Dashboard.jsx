@@ -24,7 +24,7 @@ const Dashboard = () => {
     savings: 0,
     expenseBreakdown: [],
   });
-  
+
   const [loan, setLoan] = useState({
     probability: 0,
     eligibleAmount: 0,
@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   const [monthlyTrends, setMonthlyTrends] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  
+
   // Chatbot State Modifications
   const [chatMessages, setChatMessages] = useState([
     { id: 1, type: 'bot', text: 'Hello! I can help with budgeting, loan eligibility, and savings goals based on your live ledger.' },
@@ -42,8 +42,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const API_KEY = process.env.GEMINI_API_KEY;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
 
   // Auto Scroll Hook Execution
   useEffect(() => {
@@ -58,173 +57,233 @@ const Dashboard = () => {
 
     const userInput = chatInput.trim();
     const userMessage = { id: Date.now(), type: 'user', text: userInput };
-    
+
     setChatMessages((prev) => [...prev, userMessage]);
     setChatInput('');
     setIsLoading(true);
 
-    const systemContext = `
-      You are a specialized personal finance AI assistant integrated inside the user's main dashboard tracking application. 
-      Analyze the user's real-time financial profile provided below and answer their queries accurately. Keep currency figures explicitly in INR (₹).
-      Keep answers structured, punchy, concise, and professional.
-
-      ### DASHBOARD LIVE BALANCES & DATA PROFILE:
-      - Total Calculated Income: ₹${finances.income.toLocaleString('en-IN')}
-      - Total Registered Expenses: ₹${finances.expenses.toLocaleString('en-IN')}
-      - Active Monthly Net Savings: ₹${finances.savings.toLocaleString('en-IN')}
-
-      ### LOAN ASSESSMENTS:
-      - Probability Metric: ${loan.probability}%
-      - Estimated Eligible Loan Principle Cap: ₹${loan.eligibleAmount.toLocaleString('en-IN')}
-      - Calculated EMI Anchor: ₹${loan.emi.toLocaleString('en-IN')} per month
-    `;
-
-    const contentsPayload = [
-      {
-        role: 'user',
-        parts: [{ text: `${systemContext}\n\nAcknowledge this structural framework silently and act as the Financial Copilot.` }]
-      },
-      ...chatMessages.map(msg => ({
-        role: msg.type === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-      })),
-      {
-        role: 'user',
-        parts: [{ text: userInput }]
-      }
-    ];
-
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: contentsPayload })
-      });
+
+      const token =
+        localStorage.getItem("authToken");
+
+      const response = await fetch(
+        "http://localhost:5000/api/chat",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+
+          body: JSON.stringify({
+            message: userInput
+          })
+        }
+      );
 
       const data = await response.json();
-      
-      // 🛑 CRITICAL DEBUGGER: This will output Google's exact complaint in your browser inspect console
-      console.log("Gemini API Server Response:", data);
 
       if (!response.ok) {
-        throw new Error(data.error?.message || `HTTP Error ${response.status}`);
+        throw new Error(
+          data.message || "Chat failed"
+        );
       }
-      
-      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-        const aiResponse = data.candidates[0].content.parts[0].text;
-        setChatMessages((prev) => [
-          ...prev,
-          { id: Date.now() + 1, type: 'bot', text: aiResponse }
-        ]);
-      } else if (data.candidates && data.candidates[0]?.finishReason) {
-        // Catches blocks due to Safety Filters / Safety Flags
-        throw new Error(`AI generation stopped early. Reason: ${data.candidates[0].finishReason}`);
-      } else {
-        throw new Error("API responded successfully but did not contain text fields.");
-      }
-    } catch (error) {
-      console.error("Caught Chat Error:", error);
-      setChatMessages((prev) => [
+
+      setChatMessages(prev => [
         ...prev,
-        { id: Date.now() + 1, type: 'bot', text: `⚠️ System Error: ${error.message}` }
+        {
+          id: Date.now() + 1,
+          type: "bot",
+          text: data.reply
+        }
       ]);
+
+    } catch (error) {
+
+      console.error("Chat Error:", error);
+
+      setChatMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          type: "bot",
+          text: `⚠️ ${error.message}`
+        }
+      ]);
+
     } finally {
+
       setIsLoading(false);
+
     }
   };
 
   useEffect(() => {
-    const readFinanceFromStorage = () => {
-      const legacyFinance = JSON.parse(localStorage.getItem('financeManagerData') || '{}');
-      const storedIncome = localStorage.getItem('local_finance_income');
-      const storedExpenses = localStorage.getItem('local_finance_expenses');
 
-      let expenses = [];
-      if (storedExpenses) {
-        try {
-          const parsedExpenses = JSON.parse(storedExpenses);
-          expenses = Array.isArray(parsedExpenses) ? parsedExpenses : [];
-        } catch (error) {
-          expenses = [];
+    const fetchDashboardData = async () => {
+
+      try {
+
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        const response = await fetch(
+          "http://localhost:5000/api/finance/dashboard",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const data = await response.json();
+
+        if (
+          data.success &&
+          data.dashboard
+        ) {
+
+          const dashboard = data.dashboard;
+
+          setFinances({
+            income: dashboard.totalIncome || 0,
+            expenses: dashboard.totalExpense || 0,
+            savings: dashboard.savings || 0,
+
+            incomeBreakdown:
+              dashboard.incomeBreakdown || [],
+
+            expenseBreakdown:
+              dashboard.expenseBreakdown || []
+          });
+
+          setMonthlyTrends(
+            dashboard.trends || []
+          );
+
         }
-      } else if (Array.isArray(legacyFinance.expenses)) {
-        expenses = legacyFinance.expenses;
+
+      } catch (error) {
+
+        console.error(
+          "Dashboard Fetch Error:",
+          error.message
+        );
+
       }
 
-      const income = Number(legacyFinance.income) || Number(storedIncome || 0);
-      const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      const savings = income - totalExpenses;
-
-      const expenseBreakdown = Object.entries(
-        expenses.reduce((acc, item) => {
-          const category = item.category || 'Others';
-          acc[category] = (acc[category] || 0) + Number(item.amount || 0);
-          return acc;
-        }, {})
-      )
-        .map(([name, value]) => ({ name, value: Number(value) || 0 }))
-        .sort((a, b) => b.value - a.value);
-
-      return { income, expenses: totalExpenses, savings, expenseBreakdown };
     };
 
-    const refreshFinanceData = () => {
-      const financeData = readFinanceFromStorage();
-      const savedLoan = JSON.parse(localStorage.getItem('loanEligibilityData') || '{}');
+    const fetchLoanData = async () => {
 
-      setFinances(financeData);
-      setLoan({
-        probability: Number(savedLoan.probability) || 0,
-        eligibleAmount: Number(savedLoan.eligibleAmount) || 0,
-        emi: Number(savedLoan.emi) || 0,
-      });
+      try {
 
-      const mockMongoTrends = [
-        { month: 'Jan', Income: 55000, Expense: 32000 },
-        { month: 'Feb', Income: 58000, Expense: 35000 },
-        { month: 'Mar', Income: 55600, Expense: 41000 },
-        { month: 'Apr', Income: 55800, Expense: 38000 },
-        { month: 'May', Income: 60000, Expense: 35000 },
-        { month: 'Jun', Income: 58000, Expense: 28000 }
-      ];
-      setMonthlyTrends(mockMongoTrends);
+        const token =
+          localStorage.getItem("token");
+
+        if (!token) return;
+
+        const response = await fetch(
+          "http://localhost:5000/api/loan/latest",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const data = await response.json();
+
+        if (
+          data.success &&
+          data.loan
+        ) {
+
+          setLoan({
+            probability:
+              data.loan.result?.probability || 0,
+
+            eligibleAmount:
+              data.loan.result?.eligibleAmount || 0,
+
+            emi:
+              data.loan.result?.emi || 0
+          });
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Loan Fetch Error:",
+          error.message
+        );
+
+      }
+
     };
 
-    refreshFinanceData();
-    window.addEventListener('storage', refreshFinanceData);
-    window.addEventListener('focus', refreshFinanceData);
+    fetchDashboardData();
 
-    return () => {
-      window.removeEventListener('storage', refreshFinanceData);
-      window.removeEventListener('focus', refreshFinanceData);
-    };
+    fetchLoanData();
+
   }, []);
 
   const trendData = useMemo(() => {
-    return monthlyTrends.map((data) => ({
-      month: data.month,
-      Income: Math.max(data.Income, 0),
-      Expense: Math.max(data.Expense, 0),
-      Savings: Math.max(data.Savings, 0),
+
+    return monthlyTrends.map(data => ({
+
+      month: `${data.month}/${data.year}`,
+
+      Income:
+        Math.max(
+          data.totalMinimumIncome || 0,
+          0
+        ),
+
+      Expense:
+        Math.max(
+          data.totalMaximumExpense || 0,
+          0
+        ),
+
+      Savings:
+        Math.max(
+          data.conservativeNetSavings || 0,
+          0
+        )
+
     }));
+
   }, [monthlyTrends]);
 
   const incomeSourcesData = useMemo(() => {
-    if (finances.expenseBreakdown.length > 0) {
-      return finances.expenseBreakdown.slice(0, 5).map((entry, index) => ({
-        name: entry.name,
-        value: entry.value,
-        fill: ['#0ea5e9', '#10b981', '#6366f1', '#f59e0b', '#f43f5e'][index % 5],
-      }));
+
+    if (
+      finances.incomeBreakdown &&
+      finances.incomeBreakdown.length > 0
+    ) {
+
+      return finances.incomeBreakdown.map(
+        (entry, index) => ({
+          name: entry.name,
+          value: entry.value,
+          fill: [
+            '#0ea5e9',
+            '#10b981',
+            '#6366f1',
+            '#f59e0b',
+            '#f43f5e'
+          ][index % 5]
+        })
+      );
     }
 
-    const fallbackTotal = Math.max(finances.expenses, 1);
-    return [
-      { name: 'Food', value: Math.max(fallbackTotal * 0.2, 0), fill: '#0ea5e9' },
-      { name: 'Rent', value: Math.max(fallbackTotal * 0.4, 0), fill: '#10b981' },
-      { name: 'Travel', value: Math.max(fallbackTotal * 0.12, 0), fill: '#6366f1' },
-      { name: 'Shopping', value: Math.max(fallbackTotal * 0.18, 0), fill: '#f59e0b' },
-    ];
+    return [];
+
   }, [finances]);
 
   const expenseBreakdownData = useMemo(() => {
@@ -300,7 +359,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-              
+
               {/* Context Loading Notification block */}
               {isLoading && (
                 <div className="flex justify-start">
@@ -326,9 +385,9 @@ const Dashboard = () => {
                 disabled={isLoading}
                 className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs outline-none focus:border-emerald-500 transition disabled:opacity-60"
               />
-              <button 
-                type="submit" 
-                disabled={isLoading || !chatInput.trim()} 
+              <button
+                type="submit"
+                disabled={isLoading || !chatInput.trim()}
                 className="rounded-full bg-emerald-600 p-2 text-white transition hover:bg-emerald-700 disabled:opacity-40"
               >
                 <SendHorizonal size={16} />
@@ -363,7 +422,7 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </ChartWrapper>
 
-            <ChartWrapper title="Spending by Category">
+            <ChartWrapper title="Income Stream Breakdown">
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={incomeSourcesData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f7" />

@@ -23,6 +23,8 @@ const FinanceManager = () => {
   // Form states
   const [incomeInput, setIncomeInput] = useState({ name: "", type: "Fixed", min: "", max: "" });
   const [expenseInput, setExpenseInput] = useState({ name: "", type: "Fixed", min: "", max: "", important: false });
+  const [insights, setInsights] = useState(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
 
   // UI Palette Maps
   const TYPE_COLORS = {
@@ -30,11 +32,31 @@ const FinanceManager = () => {
     Variable: "bg-amber-50 text-amber-700 border-amber-100"
   };
 
-  // --- 2. LOCAL STORAGE SYNCHRONIZATION ---
+  // --- LOAD FINANCE DATA FROM ATLAS ---
   useEffect(() => {
-    localStorage.setItem("local_fin_incomes", JSON.stringify(incomes));
-    localStorage.setItem("local_fin_expenses", JSON.stringify(expenses));
-    saveFinanceDataToBackend();
+    fetchCurrentFinance();
+  }, []);
+
+  useEffect(() => {
+    fetchInsights();
+  }, []);
+
+  // --- SAVE DATA LOCALLY + ATLAS ---
+  useEffect(() => {
+    localStorage.setItem(
+      "local_fin_incomes",
+      JSON.stringify(incomes)
+    );
+
+    localStorage.setItem(
+      "local_fin_expenses",
+      JSON.stringify(expenses)
+    );
+
+    if (incomes.length || expenses.length) {
+      saveFinanceDataToBackend();
+    }
+
   }, [incomes, expenses]);
 
   // --- 3. FORM ACTION HANDLERS ---
@@ -91,28 +113,165 @@ const FinanceManager = () => {
   const optimisticNetSavings = totalMaxIncome - totalMinExpense;
 
   // --- 5. BACKEND DATABASE SYNC ENGINE ---
+  const fetchCurrentFinance = async () => {
+    try {
+
+      const token = localStorage.getItem("authToken")
+
+      if (!token) return;
+
+      const response = await fetch(
+        "http://localhost:5000/api/finance/current",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success && data.record) {
+
+        setIncomes(
+          data.record.incomes.map(item => ({
+            id: crypto.randomUUID(),
+            name: item.source,
+            type: item.type,
+            min: item.minimumAmount,
+            max: item.maximumAmount
+          }))
+        );
+
+        setExpenses(
+          data.record.expenses.map(item => ({
+            id: crypto.randomUUID(),
+            name: item.expenseName,
+            type: item.type,
+            min: item.minimumAmount,
+            max: item.maximumAmount,
+            important: item.isImportant
+          }))
+        );
+      }
+
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+
+
   const saveFinanceDataToBackend = async () => {
     try {
+
+      const token = localStorage.getItem("authToken")
+
+      if (!token) return;
+
+      const today = new Date();
+
       const payload = {
-        incomes,
-        expenses,
-        metrics: {
-          totalMinIncome,
-          totalMaxIncome,
-          totalMinExpense,
-          totalMaxExpense,
-          conservativeNetSavings,
-        },
-      }; 
-      
-      await fetch("http://localhost:5000/api/data/finance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+
+        month: today.getMonth() + 1,
+        year: today.getFullYear(),
+
+        incomes: incomes.map(item => ({
+          source: item.name,
+          type: item.type,
+          minimumAmount: item.min,
+          maximumAmount: item.max,
+          actualAmount: item.max
+        })),
+
+        expenses: expenses.map(item => ({
+          expenseName: item.name,
+          category: "General",
+          type: item.type,
+          minimumAmount: item.min,
+          maximumAmount: item.max,
+          actualAmount: item.max,
+          isImportant: item.important
+        })),
+
+        totalMinimumIncome: totalMinIncome,
+        totalMaximumIncome: totalMaxIncome,
+
+        totalMinimumExpense: totalMinExpense,
+        totalMaximumExpense: totalMaxExpense,
+
+        conservativeNetSavings,
+        optimisticNetSavings
+
+      };
+
+      const response = await fetch(
+        "http://localhost:5000/api/finance",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      console.log("Finance Saved", data);
+
     } catch (error) {
-      console.error("MongoDB Backend sync failed:", error.message);
+      console.error(error.message);
     }
+  };
+
+  const fetchInsights = async () => {
+
+    try {
+
+      setInsightsLoading(true);
+
+      const token = localStorage.getItem("authToken");
+
+      if (!token) return;
+
+      const response = await fetch(
+        "http://localhost:5000/api/insights",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+
+        setInsights(data.insights);
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Failed to fetch insights:",
+        error.message
+      );
+
+    } finally {
+
+      setInsightsLoading(false);
+
+    }
+
   };
 
   return (
@@ -338,14 +497,10 @@ const FinanceManager = () => {
           </div>
         </div>
 
-        {/* 🌟 ENHANCED WORKSPACE SECTION: GOAL + CHATBOT BALANCED SIDE-BY-SIDE GRID 🌟 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8 items-start">
           {/* Goal Metrics Module */}
           <div className="lg:col-span-7">
-            <Goal
-              financialSummary={{ income: totalMinIncome, expenses: totalMaxExpense, savings: conservativeNetSavings }}
-              loan={{ probability: 0, eligibleAmount: 0, emi: 0 }}
-            />
+            <Goal />
           </div>
 
           {/* AI Companion Window Module */}
@@ -358,6 +513,132 @@ const FinanceManager = () => {
               conservativeNetSavings={conservativeNetSavings}
             />
           </div>
+        </div>
+
+        {/* AI FINANCIAL INSIGHTS */}
+
+        <div className="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+
+          <div className="flex items-center justify-between mb-6">
+
+            <div>
+              <h3 className="text-xl font-black text-slate-900">
+                AI Financial Insights
+              </h3>
+
+              <p className="text-sm text-slate-500">
+                Personalized recommendations generated using your financial history, goals and trends.
+              </p>
+            </div>
+
+          </div>
+
+          {insightsLoading ? (
+
+            <div className="text-center py-8 text-slate-500">
+              Analyzing your financial profile...
+            </div>
+
+          ) : insights ? (
+
+            <div className="grid md:grid-cols-2 gap-6">
+
+              {/* Financial Health */}
+
+              <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-100">
+
+                <h4 className="font-bold text-emerald-700 mb-2">
+                  Financial Health
+                </h4>
+
+                <p className="text-2xl font-black text-emerald-900">
+                  {insights.financialHealth}
+                </p>
+
+              </div>
+
+              {/* Recommendations */}
+
+              <div className="p-5 rounded-xl bg-blue-50 border border-blue-100">
+
+                <h4 className="font-bold text-blue-700 mb-3">
+                  Recommendations
+                </h4>
+
+                <ul className="space-y-2 text-sm text-slate-700">
+
+                  {insights.recommendations?.map(
+                    (item, index) => (
+
+                      <li key={index}>
+                        • {item}
+                      </li>
+
+                    )
+                  )}
+
+                </ul>
+
+              </div>
+
+              {/* Warnings */}
+
+              <div className="p-5 rounded-xl bg-amber-50 border border-amber-100">
+
+                <h4 className="font-bold text-amber-700 mb-3">
+                  Warnings
+                </h4>
+
+                <ul className="space-y-2 text-sm text-slate-700">
+
+                  {insights.warnings?.map(
+                    (item, index) => (
+
+                      <li key={index}>
+                        • {item}
+                      </li>
+
+                    )
+                  )}
+
+                </ul>
+
+              </div>
+
+              {/* Opportunities */}
+
+              <div className="p-5 rounded-xl bg-purple-50 border border-purple-100">
+
+                <h4 className="font-bold text-purple-700 mb-3">
+                  Opportunities
+                </h4>
+
+                <ul className="space-y-2 text-sm text-slate-700">
+
+                  {insights.opportunities?.map(
+                    (item, index) => (
+
+                      <li key={index}>
+                        • {item}
+                      </li>
+
+                    )
+                  )}
+
+                </ul>
+
+              </div>
+
+            </div>
+
+          ) : (
+
+            <div className="text-center py-8 text-slate-500">
+              No insights available yet.
+            </div>
+
+          )}
+
         </div>
 
         {/* INTELLIGENT RUNWAY INSIGHT ENGINE BOX */}
